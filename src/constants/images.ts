@@ -1,0 +1,21 @@
+export const IMAGES = {
+  LOGO: '/images/logo.png',
+  PLACEHOLDER: '/images/placeholder.jpg',
+  HERO_BANNER: '/images/hero-banner.png',
+  PRODUCT_1: '/images/products/spx2-1.png',
+  PRODUCT_2: '/images/products/spx2-2.png',
+  PRODUCT_3: '/images/products/spx2-3.png',
+  PRODUCT_4: '/images/products/spx2-4.png',
+  PRODUCT_5: '/images/products/spx2-5.png',
+  PRODUCT_6: '/images/products/spx2-6.png',
+  PRODUCT_7: '/images/products/spx2-7.png',
+  PRODUCT_8: '/images/products/spx2-8.png',
+  PRODUCT_9: '/images/products/spx2-9.png',
+  PRODUCT_10: '/images/products/spx2-10.png',
+  PRODUCT_11: '/images/products/spx2-11.png',
+  PRODUCT_12: '/images/products/spx2-12.png',
+  PRODUCT_13: '/images/products/spx2-13.png',
+  PRODUCT_14: '/images/products/spx2-14.png',
+  PRODUCT_15: '/images/products/spx2-15.png',
+} as const
+
