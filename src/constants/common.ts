@@ -21,6 +21,10 @@ export const PRICE_1000000 = 1000000;
 // Common messages
 export const MESSAGE_DEVELOPING = "Chức năng đang phát triển" as const;
 export const MESSAGE_REGISTER_FAILED = "Đăng ký thất bại" as const;
+export const ACTIVATION_INVALID_LINK = "Link kích hoạt không hợp lệ" as const;
+export const ACTIVATION_SUCCESS =
+  "Tài khoản đã được kích hoạt thành công!" as const;
+export const ACTIVATION_FAILED_DEFAULT = "Kích hoạt thất bại" as const;
 
 // Validation messages
 export const VALIDATION_FULL_NAME_REQUIRED = "Họ và tên là bắt buộc.";

@@ -36,7 +36,7 @@ export const RenderTopHeader = () => {
             <span className={CLASS_DISABLED} title={MESSAGE_DEVELOPING}>
               Đăng nhập
             </span>
-            <Link to="/register">
+            <Link to="auth/register">
               Đăng ký
             </Link>
           </div>

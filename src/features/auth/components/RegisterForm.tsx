@@ -3,6 +3,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { RegisterFormData } from '../types/auth.types';
 import { useRegister } from '../hooks/useRegister';
 import { validateForm, ValidationErrors } from '../utils/authValidation';
+import { sendActivationEmail } from '../services/emailService';
 import {
     CLASS_SECTION_HEADING,
     CLASS_GRID_TWO_COL,
@@ -15,7 +16,7 @@ import {
 import { cn } from '@/lib/utils';
 
 const RegisterForm: React.FC = () => {
-    const { register, loading, error } = useRegister();
+    const { createUser, loading, error } = useRegister();
 
     const [formData, setFormData] = useState<RegisterFormData>({
         fullName: '',
@@ -30,6 +31,7 @@ const RegisterForm: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [errors, setErrors] = useState<ValidationErrors>({});
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = e.target;
@@ -51,7 +53,7 @@ const RegisterForm: React.FC = () => {
         }
 
         try {
-            await register({
+            const registeredUser = await createUser({
                 fullName: formData.fullName,
                 phone: formData.phone,
                 email: formData.email,
@@ -60,12 +62,21 @@ const RegisterForm: React.FC = () => {
                 subscribeEmail: formData.subscribeEmail,
             });
 
-            alert('Đăng ký thành công!');
+            const activationLink = `${window.location.origin}/auth/activate?userId=${registeredUser.id}&token=${registeredUser.activationToken}`;
+            try {
+                const sanitizedEmail = formData.email.replace(/[\r\n]/g, '').replace(/\s+/g, ' ').trim();
+                const sanitizedName = formData.fullName.replace(/[\r\n]/g, '').replace(/\s+/g, ' ').trim();
+                await sendActivationEmail(sanitizedEmail, sanitizedName, activationLink);
+                setSuccessMessage('Đăng ký thành công! Email xác nhận đã được gửi đến hộp thư của bạn.');
+            } catch (emailErr) {
+                const emailErrorMessage = emailErr instanceof Error ? emailErr.message : 'Unknown email error';
+                console.error('Email send failed', { error: emailErr, message: emailErrorMessage });
+                setSuccessMessage(`Không thể gửi email xác nhận. Vui lòng liên hệ hỗ trợ. Dữ liệu: ${emailErrorMessage}`);
+            }
         } catch (err) {
             console.error('Registration failed', {
                 error: err,
-                message: err instanceof Error ? err.message : 'Unknown error',
-                userEmail: formData.email
+                message: err instanceof Error ? err.message : 'Unknown error'
             });
         }
     };
@@ -229,6 +240,13 @@ const RegisterForm: React.FC = () => {
                 {error && (
                     <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
                         {error}
+                    </div>
+                )}
+
+                {/* Success message */}
+                {successMessage && (
+                    <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">
+                        {successMessage}
                     </div>
                 )}
 
