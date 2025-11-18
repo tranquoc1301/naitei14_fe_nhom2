@@ -14,6 +14,15 @@ export interface LoginFormData {
   rememberMe: boolean;
 }
 
+export interface ForgotPasswordFormData {
+  email: string;
+}
+
+export interface ResetPasswordFormData {
+  newPassword: string;
+  confirmPassword: string;
+}
+
 export interface RegisterRequest {
   fullName: string;
   phone: string;
@@ -51,6 +60,20 @@ export class EmailError extends Error {
   }
 }
 
+export class ForgotPasswordError extends Error {
+  constructor(message: string, public originalError?: Error) {
+    super(message);
+    this.name = "ForgotPasswordError";
+  }
+}
+
+export class ResetPasswordError extends Error {
+  constructor(message: string, public originalError?: Error) {
+    super(message);
+    this.name = "ResetPasswordError";
+  }
+}
+
 export interface User {
   id: string;
   fullName: string;
@@ -59,8 +82,11 @@ export interface User {
   password: string;
   emailVerified: boolean;
   activationToken?: string;
+  resetToken?: string;
+  resetTokenExpiry?: string;
   website?: string;
   subscribeEmail?: boolean;
   createdAt: string;
   activatedAt?: string;
+  passwordResetAt?: string;
 }

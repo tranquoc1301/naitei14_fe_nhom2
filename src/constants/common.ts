@@ -18,6 +18,9 @@ export const PRICE_500000 = 500000;
 export const PRICE_850000 = 850000;
 export const PRICE_1000000 = 1000000;
 
+// Token expiration times
+export const TOKEN_EXPIRY_HOURS = 24;
+
 // Common messages
 export const MESSAGE_DEVELOPING = "Chức năng đang phát triển" as const;
 export const MESSAGE_REGISTER_FAILED = "Đăng ký thất bại" as const;
@@ -59,7 +62,21 @@ export const CLASS_TEXT_SM_GRAY = "text-sm text-gray-400 mb-2";
 export const CLASS_FONT_SEMIBOLD_MB4 = "font-semibold mb-4";
 export const CLASS_SPACE_Y2_TEXT_SM = "space-y-2 text-sm text-gray-400";
 
-// Register form class names
+// Auth form class names
+export const CLASS_FORM_HEADING = "text-2xl font-bold text-green-primary mb-2";
+export const CLASS_FORM_LABEL = "block text-sm font-medium text-gray-700 mb-2";
+export const CLASS_FORM_INPUT =
+  "w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500";
+export const CLASS_FORM_ERROR = "text-red-500 text-sm mt-1";
+export const CLASS_FORM_SUCCESS_MESSAGE =
+  "p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm";
+export const CLASS_FORM_ERROR_MESSAGE =
+  "p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm";
+export const CLASS_FORM_BUTTON_CONTAINER = "text-center";
+export const CLASS_FORM_PASSWORD_TOGGLE =
+  "absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors";
+
+// Register form class names (keeping for backward compatibility)
 export const CLASS_SECTION_HEADING =
   "text-xl font-bold text-green-primary mb-6";
 export const CLASS_GRID_TWO_COL = "grid grid-cols-1 md:grid-cols-2 gap-6";

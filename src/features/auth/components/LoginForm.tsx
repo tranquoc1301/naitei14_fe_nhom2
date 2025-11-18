@@ -5,6 +5,7 @@ import { LoginFormData } from "../types/auth.types";
 import { useLogin } from "../hooks/useLogin";
 import { validateLoginForm } from "../utils/authValidation";
 import { RenderButton } from "@/components/ui/Button";
+import { cn } from "@/lib/utils";
 
 const LoginForm: React.FC = () => {
   const { login, loading, error } = useLogin();
@@ -64,8 +65,10 @@ const LoginForm: React.FC = () => {
                 id="email"
                 type="email"
                 {...register("email")}
-                className={`w-full px-4 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${errors.email ? "border-red-500" : "border-gray-300"
-                  }`}
+                className={cn(
+                  "w-full px-4 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500",
+                  errors.email ? "border-red-500" : "border-gray-300"
+                )}
                 placeholder="Email của bạn"
               />
               {errors.email?.message && (
@@ -88,8 +91,10 @@ const LoginForm: React.FC = () => {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   {...register("password")}
-                  className={`w-full px-4 py-3 pr-12 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${errors.password ? "border-red-500" : "border-gray-300"
-                    }`}
+                  className={cn(
+                    "w-full px-4 py-3 pr-12 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500",
+                    errors.password ? "border-red-500" : "border-gray-300"
+                  )}
                   placeholder="Mật khẩu"
                 />
                 <button

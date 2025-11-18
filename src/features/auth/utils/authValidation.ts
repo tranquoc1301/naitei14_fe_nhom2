@@ -1,4 +1,9 @@
-import { RegisterFormData, LoginFormData } from "../types/auth.types";
+import {
+  RegisterFormData,
+  LoginFormData,
+  ForgotPasswordFormData,
+  ResetPasswordFormData,
+} from "../types/auth.types";
 import { API_BASE_URL } from "@/constants/common";
 import {
   VALIDATION_FULL_NAME_REQUIRED,
@@ -95,6 +100,58 @@ export const validateLoginForm = async (
   // Password: required
   if (!formData.password) {
     errors.password = VALIDATION_PASSWORD_REQUIRED;
+  }
+
+  return errors;
+};
+
+export const validateForgotPasswordForm = async (
+  formData: ForgotPasswordFormData
+): Promise<ValidationErrors> => {
+  const errors: ValidationErrors = {};
+
+  // Email: required, valid email, check if user exists
+  if (!formData.email.trim()) {
+    errors.email = VALIDATION_EMAIL_REQUIRED;
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    errors.email = VALIDATION_EMAIL_INVALID;
+  } else {
+    try {
+      const response = await fetch(`${API_BASE_URL}/users`);
+      const users = await response.json();
+      if (
+        !Array.isArray(users) ||
+        !users.some((user: any) => user.email === formData.email)
+      ) {
+        errors.email = "Email không tồn tại trong hệ thống";
+      }
+    } catch (err) {
+      console.warn("Email existence check failed:", err);
+    }
+  }
+
+  return errors;
+};
+
+export const validateResetPasswordForm = async (
+  formData: ResetPasswordFormData
+): Promise<ValidationErrors> => {
+  const errors: ValidationErrors = {};
+
+  // New password: required, min 8 chars, at least one letter and one number
+  if (!formData.newPassword) {
+    errors.newPassword = VALIDATION_PASSWORD_REQUIRED;
+  } else if (formData.newPassword.length < 8) {
+    errors.newPassword = VALIDATION_PASSWORD_MIN_LENGTH;
+  } else if (!/(?=.*[a-zA-Z])(?=.*\d)/.test(formData.newPassword)) {
+    errors.newPassword = VALIDATION_PASSWORD_STRENGTH;
+  }
+
+  // Confirm password: required and matches new password
+  if (!formData.confirmPassword) {
+    errors.confirmPassword = VALIDATION_CONFIRM_PASSWORD_REQUIRED;
+  } else if (formData.newPassword !== formData.confirmPassword) {
+    errors.confirmPassword = VALIDATION_PASSWORD_MISMATCH;
   }
 
   return errors;

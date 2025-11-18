@@ -4,9 +4,11 @@ import {
   RegistrationError,
   ActivationError,
   LoginError,
+  ForgotPasswordError,
+  ResetPasswordError,
 } from "../types/auth.types";
-import { API_BASE_URL } from "@/constants/common";
-import { sendActivationEmail } from "./emailService";
+import { API_BASE_URL, TOKEN_EXPIRY_HOURS } from "@/constants/common";
+import { sendActivationEmail, sendResetPasswordEmail } from "./emailService";
 
 export const registerUser = async (data: RegisterRequest): Promise<User> => {
   const activationToken = crypto.randomUUID();
@@ -112,7 +114,6 @@ export const activateUserEmail = async (
   userId: string,
   token: string
 ): Promise<User> => {
-  // Lấy thông tin user
   const getResponse = await fetch(`${API_BASE_URL}/users/${userId}`);
   if (!getResponse.ok) {
     const errorMessage = `User fetch failed with status ${getResponse.status}`;
@@ -130,7 +131,6 @@ export const activateUserEmail = async (
 
   const user = await getResponse.json();
 
-  // Kiểm tra token
   if (user.activationToken !== token) {
     const errorMessage = "Activation token mismatch";
     console.error("Invalid activation token", {
@@ -140,7 +140,6 @@ export const activateUserEmail = async (
     throw new ActivationError("Token kích hoạt không hợp lệ");
   }
 
-  // Kiểm tra đã kích hoạt chưa
   if (user.emailVerified) {
     const errorMessage = "User already verified";
     console.error("User already activated", {
@@ -150,7 +149,6 @@ export const activateUserEmail = async (
     throw new ActivationError("Tài khoản đã được kích hoạt trước đó");
   }
 
-  // Cập nhật trạng thái kích hoạt
   const updateResponse = await fetch(`${API_BASE_URL}/users/${userId}`, {
     method: "PATCH",
     headers: {
@@ -172,6 +170,163 @@ export const activateUserEmail = async (
     });
     throw new ActivationError(
       "Kích hoạt tài khoản thất bại",
+      new Error(errorMessage)
+    );
+  }
+
+  return updateResponse.json();
+};
+
+export const forgotPassword = async (email: string): Promise<void> => {
+  const response = await fetch(`${API_BASE_URL}/users`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const errorMessage = `Forgot password API failed with status ${response.status}`;
+    console.error("Forgot password API error", {
+      message: errorMessage,
+      status: response.status,
+      url: `${API_BASE_URL}/users`,
+    });
+    throw new ForgotPasswordError(
+      "Quên mật khẩu thất bại",
+      new Error(errorMessage)
+    );
+  }
+
+  const users: User[] = await response.json();
+
+  // Find user by email
+  const user = users.find((u) => u.email === email);
+
+  if (!user) {
+    const errorMessage = "User not found";
+    console.error("Forgot password error", {
+      message: errorMessage,
+      timestamp: new Date().toISOString(),
+    });
+    throw new ForgotPasswordError("Email không tồn tại trong hệ thống");
+  }
+
+  const resetToken = crypto.randomUUID();
+  const resetTokenExpiry = new Date(
+    Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000
+  ).toISOString();
+
+  // Update user with reset token
+  const updateResponse = await fetch(`${API_BASE_URL}/users/${user.id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      resetToken,
+      resetTokenExpiry,
+    }),
+  });
+
+  if (!updateResponse.ok) {
+    const errorMessage = `Reset token update failed with status ${updateResponse.status}`;
+    console.error("Reset token update error", {
+      message: errorMessage,
+      status: updateResponse.status,
+      timestamp: new Date().toISOString(),
+    });
+    throw new ForgotPasswordError(
+      "Không thể tạo token đặt lại mật khẩu",
+      new Error(errorMessage)
+    );
+  }
+
+  const resetLink = `${window.location.origin}/auth/reset-password?userId=${user.id}&token=${resetToken}`;
+
+  try {
+    await sendResetPasswordEmail(user.email, user.fullName, resetLink);
+  } catch (emailError) {
+    console.error("Reset password email sending failed", {
+      message:
+        "Reset password email could not be sent but reset token was created",
+      cause:
+        emailError instanceof Error
+          ? emailError.message
+          : "Unknown email error",
+      userId: user.id,
+      email: user.email,
+      timestamp: new Date().toISOString(),
+    });
+  }
+};
+
+export const resetPassword = async (
+  userId: string,
+  token: string,
+  newPassword: string
+): Promise<User> => {
+  // Lấy thông tin user
+  const getResponse = await fetch(`${API_BASE_URL}/users/${userId}`);
+  if (!getResponse.ok) {
+    const errorMessage = `User fetch failed with status ${getResponse.status}`;
+    console.error("User fetch error for reset password", {
+      message: errorMessage,
+      userId,
+      status: getResponse.status,
+      timestamp: new Date().toISOString(),
+    });
+    throw new ResetPasswordError(
+      "Không tìm thấy người dùng",
+      new Error(errorMessage)
+    );
+  }
+
+  const user = await getResponse.json();
+
+  // Kiểm tra token
+  if (user.resetToken !== token) {
+    const errorMessage = "Reset token mismatch";
+    console.error("Invalid reset token", {
+      message: errorMessage,
+      timestamp: new Date().toISOString(),
+    });
+    throw new ResetPasswordError("Token đặt lại mật khẩu không hợp lệ");
+  }
+
+  // Kiểm tra thời hạn token
+  if (new Date(user.resetTokenExpiry) < new Date()) {
+    const errorMessage = "Reset token expired";
+    console.error("Reset token expired", {
+      message: errorMessage,
+      timestamp: new Date().toISOString(),
+    });
+    throw new ResetPasswordError("Token đặt lại mật khẩu đã hết hạn");
+  }
+
+  // Cập nhật mật khẩu
+  const updateResponse = await fetch(`${API_BASE_URL}/users/${userId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      password: newPassword,
+      resetToken: null,
+      resetTokenExpiry: null,
+      passwordResetAt: new Date().toISOString(),
+    }),
+  });
+
+  if (!updateResponse.ok) {
+    const errorMessage = `Password reset failed with status ${updateResponse.status}`;
+    console.error("Password reset error", {
+      message: errorMessage,
+      status: updateResponse.status,
+      timestamp: new Date().toISOString(),
+    });
+    throw new ResetPasswordError(
+      "Không thể đặt lại mật khẩu",
       new Error(errorMessage)
     );
   }

@@ -5,13 +5,16 @@
       "fullName": "Trần Văn A",
       "phone": "09082151825",
       "email": "haudreywilliam13@gmail.com",
-      "password": "Hoc12345",
+      "password": "Hoc123456",
       "website": "",
       "subscribeEmail": true,
       "emailVerified": true,
       "activationToken": null,
       "createdAt": "2025-11-14T10:08:16.256Z",
-      "activatedAt": "2025-11-14T10:08:36.653Z"
+      "activatedAt": "2025-11-14T10:08:36.653Z",
+      "resetToken": null,
+      "resetTokenExpiry": null,
+      "passwordResetAt": "2025-11-18T02:46:16.790Z"
     }
   ]
 }
